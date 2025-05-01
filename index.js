@@ -1,9 +1,9 @@
-const express = require('express')
-var cors = require('cors') 
-const app = express()
+const express = require("express");
+var cors = require("cors");
+const app = express();
 require("dotenv").config();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion,ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 // Middleware
 app.use(express.json());
@@ -16,7 +16,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -30,81 +30,117 @@ async function run() {
     const reviewCollection = database.collection("reviews");
 
     // User API
-    app.post('/users', async(req,res)=>{
-        const user = req.body;
-        const result = await userCollection.insertOne(user);
-        res.send(result);
-    })
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
 
     // Tutorial API
-    app.get('/tutorials', async (req, res) => {
-        const result = await tutorialCollection.find().toArray();
-        res.send(result);
-      })
-      app.get('/tutorials/:id', async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id)  };
-        const result = await tutorialCollection.findOne(query);
-        res.send(result);
-      })
-      app.get('/tutorials/by-email/:email', async (req, res) => {
-        const email = req.params.email;
-        const query = { email: email  };
-        const result = await tutorialCollection.findOne(query);
-        res.send(result);
-      })
+    app.get("/tutorials", async (req, res) => {
+      const result = await tutorialCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/tutorials/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await tutorialCollection.findOne(query);
+      res.send(result);
+    });
+    app.get("/tutorials/by-email/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await tutorialCollection.findOne(query);
+      res.send(result);
+    });
 
-    app.post('/tutorials', async (req, res) => {
+    app.post("/tutorials", async (req, res) => {
       const tutorial = req.body;
       const result = await tutorialCollection.insertOne(tutorial);
       res.send(result);
-    })
+    });
 
-    app.delete('/tutorials/:id', async (req, res) => {
+    app.delete("/tutorials/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id)  };
+      const query = { _id: new ObjectId(id) };
       const result = await tutorialCollection.deleteOne(query);
       res.send(result);
-    })
+    });
 
-    app.patch('/tutorials/:id', async(req,res)=>{
-        const id = req.params.id;
-        const filter ={ _id : new ObjectId(id) };
-        const options = { upsert: true };
-        const updateDoc = {
-            $set: {
-            //    attributes 
-            },
-        };
-        const result = await tutorialCollection.updateOne(filter, updateDoc, options);
-        res.send(result);
-    })
+    app.patch("/tutorials/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          //    attributes
+        },
+      };
+      const result = await tutorialCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.send(result);
+    });
 
     // booking API
-    app.post('/bookings', async (req, res)=>{
-      const booking = req.body;
-      const result= await bookingCollection.insertOne(booking);
+    app.get("/my-bookings/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await bookingCollection.find(query).toArray();
       res.send(result);
-    })
+    });
+
+    app.post("/bookings", async (req, res) => {
+      const booking = req.body;
+      const { tutorialId, email } = booking;
+
+      if (!tutorialId || !email) {
+        return res.status(400).send({ message: "Missing tutorialId or email" });
+      }
+
+      // Checking if the user already booked this tutorial
+      const existingBooking = await bookingCollection.findOne({
+        tutorialId: tutorialId,
+        email: email,
+      });
+
+      if (existingBooking) {
+        return res
+          .status(409)
+          .send({ error: "You have already booked this tutorial." });
+      }
+
+      // If no duplicate, insert booking
+      const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+    });
+
+    app.delete("/bookings/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.deleteOne(booking);
+      res.send(result);
+    });
     // Stats API
     // Review API
-    // jwt 
-
-  
+    // jwt
 
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // await client.close();
   }
 }
 run().catch(console.dir);
 
-
-app.get('/', (req, res) => {
-  res.send('Hello Learnistry!')
-})
+app.get("/", (req, res) => {
+  res.send("Hello Learnistry!");
+});
 
 app.listen(port, () => {
-  console.log(`Tuitor Find app listening on port ${port}`)
-})
+  console.log(`Tuitor Find app listening on port ${port}`);
+});
