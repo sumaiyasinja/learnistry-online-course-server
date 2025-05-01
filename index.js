@@ -1,5 +1,5 @@
 const express = require('express')
-var cors = require('cors')
+var cors = require('cors') 
 const app = express()
 require("dotenv").config();
 const port = process.env.PORT || 5000;
@@ -24,8 +24,9 @@ async function run() {
     // await client.connect();
 
     const database = client.db("Learnistry");
-    const tuitorCollection = database.collection("tuitors");
+    const tutorialCollection = database.collection("tutorials");
     const userCollection = database.collection("users");
+    const bookingCollection = database.collection("bookings");
     const reviewCollection = database.collection("reviews");
 
     // User API
@@ -35,37 +36,38 @@ async function run() {
         res.send(result);
     })
 
-    app.get('/users', async(req,res)=>{
-        const result = await userCollection.find().toArray();
-        res.send(result);
-    })
-
-    // Tuitor API
-    app.get('/tuitors', async (req, res) => {
-        const result = await tuitorCollection.find().toArray();
+    // Tutorial API
+    app.get('/tutorials', async (req, res) => {
+        const result = await tutorialCollection.find().toArray();
         res.send(result);
       })
-      app.get('/tuitors/:id', async (req, res) => {
+      app.get('/tutorials/:id', async (req, res) => {
         const id = req.params.id;
         const query = { _id: new ObjectId(id)  };
-        const result = await tuitorCollection.findOne(query);
+        const result = await tutorialCollection.findOne(query);
+        res.send(result);
+      })
+      app.get('/tutorials/by-email/:email', async (req, res) => {
+        const email = req.params.email;
+        const query = { email: email  };
+        const result = await tutorialCollection.findOne(query);
         res.send(result);
       })
 
-    app.post('/tuitors', async (req, res) => {
-      const tuitor = req.body;
-      const result = await tuitorCollection.insertOne(tuitor);
+    app.post('/tutorials', async (req, res) => {
+      const tutorial = req.body;
+      const result = await tutorialCollection.insertOne(tutorial);
       res.send(result);
     })
 
-    app.delete('/tuitors/:id', async (req, res) => {
+    app.delete('/tutorials/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id)  };
-      const result = await tuitorCollection.deleteOne(query);
+      const result = await tutorialCollection.deleteOne(query);
       res.send(result);
     })
 
-    app.put('/tuitors/:id', async(req,res)=>{
+    app.patch('/tutorials/:id', async(req,res)=>{
         const id = req.params.id;
         const filter ={ _id : new ObjectId(id) };
         const options = { upsert: true };
@@ -74,10 +76,19 @@ async function run() {
             //    attributes 
             },
         };
-        const result = await tuitorCollection.updateOne(filter, updateDoc, options);
+        const result = await tutorialCollection.updateOne(filter, updateDoc, options);
         res.send(result);
     })
 
+    // booking API
+    app.post('/bookings', async (req, res)=>{
+      const booking = req.body;
+      const result= await bookingCollection.insertOne(booking);
+      res.send(result);
+    })
+    // Stats API
+    // Review API
+    // jwt 
 
   
 
