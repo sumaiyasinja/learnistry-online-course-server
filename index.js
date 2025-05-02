@@ -47,10 +47,18 @@ async function run() {
       const result = await tutorialCollection.findOne(query);
       res.send(result);
     });
+    // Get tutorial by email
     app.get("/tutorials/by-email/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
-      const result = await tutorialCollection.findOne(query);
+      const result = await tutorialCollection.find(query).toArray();
+      res.send(result);
+    });
+    // Get tutorial by category(language)
+    app.get("/tutorials/by-category/:language", async (req, res) => {
+      const language = req.params.language;
+      const query = { language : language };
+      const result = await tutorialCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -120,7 +128,7 @@ async function run() {
     app.delete("/bookings/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      const result = await bookingCollection.deleteOne(booking);
+      const result = await bookingCollection.deleteOne(query);
       res.send(result);
     });
     // Stats API
