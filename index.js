@@ -77,11 +77,18 @@ async function run() {
 
     app.patch("/tutorials/:id", async (req, res) => {
       const id = req.params.id;
+      const tutorial = req.body;
       const filter = { _id: new ObjectId(id) };
       const options = { upsert: true };
       const updateDoc = {
         $set: {
-          //    attributes
+          image: tutorial.image,
+          language: tutorial.language,
+          price: tutorial.price,
+          description: tutorial.description,
+          language: tutorial.language,
+          price: tutorial.price,
+          description: tutorial.description,
         },
       };
       const result = await tutorialCollection.updateOne(
